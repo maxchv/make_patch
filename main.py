@@ -66,7 +66,7 @@ def parse_arguments():
 def main():
     args = parse_arguments()
 
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s')
 
     logger.info('Repository directory: %s', args.repository_path)
