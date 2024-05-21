@@ -12,6 +12,9 @@ TARGET_CLASSES = f'{sep}target{sep}classes{sep}'
 
 
 def copy(src: Path, dst: Path):
+    if not src.exists():
+        logger.error("File %s doesn't exists", src)
+        return
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst)
 
