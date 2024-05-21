@@ -90,7 +90,7 @@ def main():
     for item in commit.diff(commit.parents or None):
         path = Path(item.a_path)
         name = path.name
-        if name.endswith('.xml') and path.name != 'pom.xml' and path.name != 'build.xml':
+        if name.endswith('.xml') and name != 'pom.xml' and name != 'build.xml':
             copy_file(repo_dir, path, args.output_directory)
         elif name.endswith('.java') and 'Test' not in name:
             copy_java_class(repo_dir, path, args.output_directory)
