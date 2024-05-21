@@ -43,7 +43,14 @@ def copy_java_class(repo_dir: Path, path: Path, output_dir: str):
 def copy_file(repo_dir: Path, path: Path, output_dir: str):
     src_path = repo_dir / path
     logger.debug('copy from %s', src_path)
-    dest_path = Path(output_dir) / path
+
+    if 'WEB-INF' in path.parts:
+        path_parts = list(path.parts)
+        web_inf_index = path_parts.index('WEB-INF')
+        dest_path = Path(output_dir) / Path(*path_parts[web_inf_index:])
+    else:
+        dest_path = Path(output_dir) / path
+
     logger.debug('copy to %s', dest_path)
     copy(src_path, dest_path)
 
@@ -83,7 +90,7 @@ def main():
     for item in commit.diff(commit.parents or None):
         path = Path(item.a_path)
         name = path.name
-        if name.endswith('.xml'):
+        if name.endswith('.xml') and path.name != 'pom.xml' and path.name != 'build.xml':
             copy_file(repo_dir, path, args.output_directory)
         elif name.endswith('.java') and 'Test' not in name:
             copy_java_class(repo_dir, path, args.output_directory)
