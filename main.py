@@ -105,11 +105,10 @@ def main():
 
     logger.info('Repository directory: %s', args.repository_path)
     logger.info('Output directory: %s', args.output_directory)
-    logger.info('Commit hash: %s', args.commit)
 
     repo = git.Repo(args.repository_path)
     commit_hash = args.commit if args.commit else repo.head.commit
-    logger.debug('Commit hash: %s', commit_hash)
+    logger.info('Commit hash: %s', commit_hash)
     commit = repo.commit(commit_hash)
     repo_dir = Path(args.repository_path)
 
