@@ -66,12 +66,36 @@ def parse_arguments():
     parser.add_argument('-o', '--output-directory', type=str,
                         required=True, help='Output directory')
     parser.add_argument('-c', '--commit', type=str,
-                        required=True, help='Commit hash code')
+                        required=False, help='Commit hash code')
     parser.add_argument('-d', '--debug', action='store_true',
                         default=False, help='Show debug messages')
 
     return parser.parse_args()
 
+def is_xml_file(name):
+    return name.endswith('.xml') and name != 'pom.xml' and name != 'build.xml'
+
+def is_java_file(name):
+    return name.endswith('.java') and 'Test' not in name
+
+def make_diff_file(repo: git.Repo, path: Path, output_dir: str):
+    repo_dir = Path(repo.working_dir)
+    src_path = repo_dir / path
+    logger.debug('make diff file for %s', src_path)
+
+    if 'WEB-INF' in path.parts:
+        path_parts = list(path.parts)
+        web_inf_index = path_parts.index('WEB-INF')
+        dest_path = Path(output_dir) / Path(*path_parts[web_inf_index:])
+    else:
+        dest_path = Path(output_dir) / path
+
+    diff = repo.git.diff('master', repo.head.commit, path)
+    dest_diff = str(dest_path) + '.diff'
+
+    logger.debug('save diff file to %s', dest_diff)
+    with open(dest_diff, 'w') as f:
+        f.write(diff)
 
 def main():
     args = parse_arguments()
@@ -84,15 +108,18 @@ def main():
     logger.info('Commit hash: %s', args.commit)
 
     repo = git.Repo(args.repository_path)
-    commit = repo.commit(args.commit)
+    commit_hash = args.commit if args.commit else repo.head.commit
+    logger.debug('Commit hash: %s', commit_hash)
+    commit = repo.commit(commit_hash)
     repo_dir = Path(args.repository_path)
 
     for item in commit.diff(commit.parents or None):
         path = Path(item.a_path)
         name = path.name
-        if name.endswith('.xml') and name != 'pom.xml' and name != 'build.xml':
+        if is_xml_file(name):
             copy_file(repo_dir, path, args.output_directory)
-        elif name.endswith('.java') and 'Test' not in name:
+            make_diff_file(repo, path, args.output_directory)
+        elif is_java_file(name):
             copy_java_class(repo_dir, path, args.output_directory)
         else:
             logger.debug('pass file %s', path)
