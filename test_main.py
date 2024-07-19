@@ -50,6 +50,20 @@ class TestMain(unittest.TestCase):
             result = list(find_java_classes(Path(repo_dir), path))
 
             self.assertEqual(result, [str(class_file)])
+    
+    def test_find_java_classes_inner_class(self):
+        path = Path('src/main/java/com/example/Main.java')
+
+        with tempfile.TemporaryDirectory() as repo_dir:
+            output_dir = Path(repo_dir)
+            target_classes = Path(TARGET_CLASSES.strip(os.path.sep))
+            class_file = output_dir / target_classes / 'com' / 'example' / 'Main$Inner.class'
+            class_file.parent.mkdir(parents=True, exist_ok=True)
+            class_file.touch()
+
+            result = list(find_java_classes(Path(repo_dir), path))
+
+            self.assertEqual(result, [str(class_file)])
 
 
 class CopyTestCase(unittest.TestCase):

@@ -1,3 +1,4 @@
+import itertools
 import git
 import argparse
 from pathlib import Path
@@ -21,14 +22,23 @@ def copy(src: Path, dst: Path):
 
 def find_java_classes(repo_dir: Path, path: Path):
     name = path.name
-    class_name = name.replace('.java', '.class')
-    logger.debug('find class file %s', class_name)
-    for found_class in repo_dir.rglob(class_name):
+    base_class_name = name.rstrip('.java')
+    
+    # find class files
+    class_name = f'{base_class_name}.class'
+    # find inner class files
+    inner_class_name = f'{base_class_name}$*.class'
+
+    logger.debug('find class file %s and inner class files %s', class_name, inner_class_name)
+    
+    class_generator = repo_dir.rglob(class_name)
+    inner_class_generator = repo_dir.rglob(inner_class_name)
+    
+    for found_class in itertools.chain(class_generator, inner_class_generator):
         full_path = str(found_class)
         if TARGET_CLASSES in full_path:
             logger.debug('found file %s', full_path)
             yield full_path
-
 
 def copy_java_class(repo_dir: Path, path: Path, output_dir: str):
     for full_path in find_java_classes(repo_dir, path):
